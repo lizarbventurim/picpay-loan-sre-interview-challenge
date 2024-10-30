@@ -1,0 +1,33 @@
+@service_host=http://localhost:8080
+@bff_host=http://localhost:8085
+
+@app=testapp
+@revision=master
+@profile=dev
+
+###
+# @name session
+GET {{service_host}}/api/v1/rates
+
+
+###
+# @name session
+GET {{bff_host}}/api/rates
+
+###
+# @name session
+GET {{bff_host}}/api/rates/1
+
+POST {{bff_host}}/api/rates
+{
+    "name": "Loan FIN WILL",
+    "description": "Teste Put Example",
+    "rate": 1.5
+}
+
+PUT {{bff_host}}/api/rates/1
+{
+    "name": "Loan CP",
+    "description": "Teste Put Example",
+    "rate": 1.5
+}
