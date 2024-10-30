@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 function App() {
   const [list, setList] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newRate, setNewRate] = useState({ name: '', description: '', rate: '' });
+  const [newRate, setNewRate] = useState({ id: null, name: '', description: '', rate: '' });
 
   const tableData = () => {
     fetch('http://localhost:8085/api/rates')
@@ -24,8 +24,11 @@ function App() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    fetch('http://localhost:8085/api/rates', {
-      method: 'POST',
+    const method = newRate.id ? 'PUT' : 'POST';
+    const url = newRate.id ? `http://localhost:8085/api/rates/${newRate.id}` : 'http://localhost:8085/api/rates';
+
+    fetch(url, {
+      method: method,
       headers: {
         'Content-Type': 'application/json',
       },
@@ -34,9 +37,14 @@ function App() {
       .then((response) => response.json())
       .then((data) => {
         setIsModalOpen(false);
-        setNewRate({ name: '', description: '', rate: '' });
+        setNewRate({ id: null, name: '', description: '', rate: '' });
         tableData(); // Refresh the table data
       });
+  };
+
+  const handleEdit = (item) => {
+    setNewRate(item);
+    setIsModalOpen(true);
   };
 
   return (
@@ -50,6 +58,7 @@ function App() {
               <th>Name</th>
               <th>Description</th>
               <th>Rate</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -58,6 +67,9 @@ function App() {
                 <td>{item.name}</td>
                 <td>{item.description}</td>
                 <td>{item.rate}</td>
+                <td>
+                  <button onClick={() => handleEdit(item)}>Edit</button>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -70,7 +82,7 @@ function App() {
             <span className="close" onClick={() => setIsModalOpen(false)}>
               &times;
             </span>
-            <h2>Add New Rate</h2>
+            <h2>{newRate.id ? 'Edit Rate' : 'Add New Rate'}</h2>
             <form onSubmit={handleSubmit}>
               <label>
                 Name:
@@ -103,7 +115,7 @@ function App() {
                   required
                 />
               </label>
-              <button type="submit">Submit</button>
+              <button type="submit">{newRate.id ? 'Update' : 'Submit'}</button>
             </form>
           </div>
         </div>
