@@ -23,7 +23,7 @@ public class RateService {
                 RateEntity.builder()
                         .name(rateDto.getName())
                         .description(rateDto.getDescription())
-                        .rate(rateDto.getRate())
+                        .rate(rateDto.getValue())
                         .build());
 
         return savedEntity.getId();
@@ -37,7 +37,7 @@ public class RateService {
                 .id(rateEntity.getId())
                 .name(rateEntity.getName())
                 .description(rateEntity.getDescription())
-                .rate(rateEntity.getRate())
+                .value(rateEntity.getRate())
                 .build();
     }
 
@@ -47,7 +47,7 @@ public class RateService {
                         .id(rateEntity.getId())
                         .name(rateEntity.getName())
                         .description(rateEntity.getDescription())
-                        .rate(rateEntity.getRate())
+                        .value(rateEntity.getRate())
                         .build())
                 .collect(Collectors.toList());
     }
@@ -59,7 +59,7 @@ public class RateService {
                 
         rateEntity.setName(rateDto.getName() == null || rateDto.getName().isEmpty() ? rateEntity.getName() : rateDto.getName());
         rateEntity.setDescription(rateDto.getDescription() == null || rateDto.getDescription().isEmpty() ? rateEntity.getDescription() : rateDto.getDescription());
-        rateEntity.setRate(rateDto.getRate() == null ? rateEntity.getRate() : rateDto.getRate());
+        rateEntity.setRate(rateDto.getValue() == null ? rateEntity.getRate() : rateDto.getValue());
 
         rateRepository.save(rateEntity);
 
@@ -67,7 +67,7 @@ public class RateService {
                 .id(rateEntity.getId())
                 .name(rateEntity.getName())
                 .description(rateEntity.getDescription())
-                .rate(rateEntity.getRate())
+                .value(rateEntity.getRate())
                 .build();
     }
 }

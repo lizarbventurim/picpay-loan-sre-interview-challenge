@@ -9,25 +9,39 @@
 # @name session
 GET {{service_host}}/api/v1/rates
 
+GET {{service_host}}/api/v1/loans
 
-###
-# @name session
-GET {{bff_host}}/api/rates
+GET {{service_host}}/api/v1/loans/6
 
-###
-# @name session
-GET {{bff_host}}/api/rates/1
-
-POST {{bff_host}}/api/rates
-{
-    "name": "Loan FIN WILL",
-    "description": "Teste Put Example",
-    "rate": 1.5
-}
-
-PUT {{bff_host}}/api/rates/1
+POST {{service_host}}/api/v1/loans
+Content-Type: application/json
 {
     "name": "Loan CP",
-    "description": "Teste Put Example",
-    "rate": 1.5
+    "description": "Teste Post Example",
+    "value": 100.5,
+    "installmentsNumber": 5,
+    "startDate": "2024-01-10T00:00:00",
+    "rate": {
+        "id": 1
+    }
+}
+
+
+
+GET {{bff_host}}/api/rates
+
+GET {{bff_host}}/api/loans
+
+GET {{bff_host}}/api/loans/6
+
+POST {{bff_host}}/api/loans
+{
+    "name": "Loan CPl",
+    "description": "Teste Post Example",
+    "value": 100.5,
+    "installmentsNumber": 5,
+    "startDate": "2024-01-10T00:00:00",
+    "rate": {
+        "id": 1
+    }
 }

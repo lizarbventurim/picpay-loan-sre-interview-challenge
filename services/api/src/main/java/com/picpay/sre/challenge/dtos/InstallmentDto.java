@@ -1,5 +1,8 @@
 package com.picpay.sre.challenge.dtos;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -11,10 +14,10 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class RateDto {
-    private Long id;
-    private String name;
-    private String description;
-    private Double value;
-}    
+public class InstallmentDto {
 
+    private Double value;
+    private Integer installmentNumber;
+    private LocalDate dueDate;
+
+}

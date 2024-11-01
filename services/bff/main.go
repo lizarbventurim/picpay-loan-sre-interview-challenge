@@ -4,24 +4,58 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/gin-contrib/cors"
+	"github.com/gin-contrib/logger"
 	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
+
+type Date struct {
+	time.Time
+}
+
+func (ct *Date) UnmarshalJSON(b []byte) (err error) {
+	s := strings.Trim(string(b), "\"")
+	if s == "null" {
+		ct.Time = time.Time{}
+		return
+	}
+	ct.Time, err = time.Parse("2006-01-02", s)
+	return
+}
+
+type InstallmentDto struct {
+	Value             float64 `json:"value,omitempty"`
+	InstallmentNumber int     `json:"installmentNumber,omitempty"`
+	DueDate           Date    `json:"dueDate,omitempty"`
+}
 
 type RateDto struct {
 	Id          int64   `json:"id,omitempty"`
 	Name        string  `json:"name"`
 	Description string  `json:"description,omitempty"`
-	Rate        float64 `json:"rate,omitempty"`
+	Value       float64 `json:"value,omitempty"`
 }
 
-func fetchRates(baseUrl string) ([]RateDto, error) {
-	resp, err := http.Get(fmt.Sprintf("%s/api/v1/rates", baseUrl))
+type LoanDto struct {
+	Id                 int64            `json:"id,omitempty"`
+	Name               string           `json:"name"`
+	Description        string           `json:"description,omitempty"`
+	Value              float64          `json:"value,omitempty"`
+	InstallmentsNumber int              `json:"installmentsNumber,omitempty"`
+	Installments       []InstallmentDto `json:"installments,omitempty"`
+	StartDate          Date             `json:"startDate,omitempty"`
+	Rate               RateDto          `json:"rate,omitempty"`
+}
+
+func fetchRates(apiUrl string) ([]RateDto, error) {
+	resp, err := http.Get(fmt.Sprintf("%s/api/v1/rates", apiUrl))
 	if err != nil {
 		return nil, err
 	}
@@ -34,53 +68,38 @@ func fetchRates(baseUrl string) ([]RateDto, error) {
 	return rates, nil
 }
 
-func fetchRateByID(baseUrl, id string) (RateDto, error) {
-	resp, err := http.Get(fmt.Sprintf("%s/api/v1/rates/%s", baseUrl, id))
+func fetchLoans(apiUrl string) ([]LoanDto, error) {
+	resp, err := http.Get(fmt.Sprintf("%s/api/v1/loans", apiUrl))
 	if err != nil {
-		return RateDto{}, err
+		return nil, err
 	}
 	defer resp.Body.Close()
-
-	var rate RateDto
-	if err := json.NewDecoder(resp.Body).Decode(&rate); err != nil {
-		return RateDto{}, err
+	var loans []LoanDto = make([]LoanDto, 0)
+	if err := json.NewDecoder(resp.Body).Decode(&loans); err != nil {
+		return nil, err
 	}
-
-	return rate, nil
+	return loans, nil
 }
 
-func createRate(baseUrl string, rate RateDto) (string, error) {
-	body, err := json.Marshal(rate)
+func fetchLoanById(apiUrl string, id int64) (*LoanDto, error) {
+	resp, err := http.Get(fmt.Sprintf("%s/api/v1/loans/%d", apiUrl, id))
 	if err != nil {
-		return "", err
-	}
-	resp, err := http.Post(fmt.Sprintf("%s/api/v1/rates", baseUrl), "application/json", bytes.NewBuffer(body))
-	if err != nil {
-		return "", err
+		return nil, err
 	}
 	defer resp.Body.Close()
-
-	rbody, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
+	var loan LoanDto
+	if err := json.NewDecoder(resp.Body).Decode(&loan); err != nil {
+		return nil, err
 	}
-
-	return string(rbody), nil
+	return &loan, nil
 }
 
-func updateRate(baseUrl, id string, rate RateDto) error {
-	body, err := json.Marshal(rate)
+func saveLoan(apiUrl string, loan LoanDto) error {
+	body, err := json.Marshal(loan)
 	if err != nil {
 		return err
 	}
-	req, err := http.NewRequest(http.MethodPut, fmt.Sprintf("%s/api/v1/rates/%s", baseUrl, id), bytes.NewBuffer(body))
-	if err != nil {
-		return err
-	}
-	req.Header.Set("Content-Type", "application/json")
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := http.Post(fmt.Sprintf("%s/api/v1/loans", apiUrl), "application/json", bytes.NewBuffer(body))
 	if err != nil {
 		return err
 	}
@@ -94,12 +113,12 @@ func main() {
 		port = "8085" // Default port if not specified
 	}
 
-	baseUrl := os.Getenv("BASE_URL")
-	if baseUrl == "" {
-		baseUrl = "http://localhost:8080" // Default port if not specified
+	apiUrl := os.Getenv("API_URL")
+	if apiUrl == "" {
+		apiUrl = "http://localhost:8080" // Default port if not specified
 	}
 
-	r := gin.Default()
+	r := gin.New()
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:  []string{"*"},
 		AllowMethods:  []string{"*"},
@@ -107,9 +126,14 @@ func main() {
 		ExposeHeaders: []string{"*"},
 		MaxAge:        12 * time.Hour,
 	}))
+	r.Use(logger.SetLogger(
+		logger.WithLogger(func(_ *gin.Context, l zerolog.Logger) zerolog.Logger {
+			return l.Output(gin.DefaultWriter).With().Logger()
+		}),
+	))
 
 	r.GET("/api/rates", func(c *gin.Context) {
-		rates, err := fetchRates(baseUrl)
+		rates, err := fetchRates(apiUrl)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": err.Error(),
@@ -121,9 +145,8 @@ func main() {
 		})
 	})
 
-	r.GET("/api/rates/:id", func(c *gin.Context) {
-		id := c.Param("id")
-		rate, err := fetchRateByID(baseUrl, id)
+	r.GET("/api/loans", func(c *gin.Context) {
+		loans, err := fetchLoans(apiUrl)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": err.Error(),
@@ -131,49 +154,52 @@ func main() {
 			return
 		}
 		c.JSON(http.StatusOK, gin.H{
-			"data": rate,
+			"data": loans,
 		})
 	})
 
-	r.POST("/api/rates", func(c *gin.Context) {
-		var rate RateDto
-		if err := c.BindJSON(&rate); err != nil {
+	r.GET("/api/loans/:id", func(c *gin.Context) {
+		id := c.Param("id")
+		loanId := int64(0)
+		if _, err := fmt.Sscanf(id, "%d", &loanId); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Invalid loan id",
+			})
+			return
+		}
+		loan, err := fetchLoanById(apiUrl, loanId)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"data": loan,
+		})
+	})
+
+	r.POST("/api/loans", func(c *gin.Context) {
+		var loan LoanDto
+		if err := c.BindJSON(&loan); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": err.Error(),
 			})
 			return
 		}
-		id, err := createRate(baseUrl, rate)
-		if err != nil {
+		if err := saveLoan(apiUrl, loan); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": err.Error(),
 			})
 			return
 		}
 		c.JSON(http.StatusCreated, gin.H{
-			"id": id,
+			"message": "Loan created successfully",
 		})
 	})
 
-	r.PUT("/api/rates/:id", func(c *gin.Context) {
-		id := c.Param("id")
-		var rate RateDto
-		if err := c.BindJSON(&rate); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": err.Error(),
-			})
-			return
-		}
-		if err := updateRate(baseUrl, id, rate); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
-			return
-		}
-		c.JSON(http.StatusOK, gin.H{
-			"message": "Rate updated successfully",
-		})
-	})
+	if err := r.Run(":" + port); err != nil {
+		log.Fatal().Msg("can' start server with 8080 port")
+	}
 
-	r.Run(":" + port)
 }

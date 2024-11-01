@@ -26,4 +26,8 @@ public class RateEntity {
     private String name;
     private String description;
     private Double rate;
+
+    public double getRateValue() {
+        return rate/100;
+    }
 }
