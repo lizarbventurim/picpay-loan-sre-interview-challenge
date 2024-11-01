@@ -14,7 +14,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class InstallmentId implements Serializable{
+public class InstallmentId implements Serializable {
     @Column(name = "loan_id")
     private Long loanId;
 

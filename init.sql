@@ -27,5 +27,13 @@ CREATE TABLE installments (
 );
 
 
+CREATE TABLE auths (
+    client_id VARCHAR(255) NOT NULL,
+    client_secret VARCHAR(255) NOT NULL,
+    PRIMARY KEY (client_id)
+);
+
+INSERT INTO auths (client_id, client_secret) VALUES ('bff', 'b27ccb9f-abaf-4fe2-b7fe-cbd61d69ed92');
+
 INSERT INTO rates (name, description, rate) VALUES ('Rate 1', 'Sample Description', 1.5);
 INSERT INTO rates (name, description, rate) VALUES ('Rate 2', 'Sample Description', 1.7);

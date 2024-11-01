@@ -30,6 +30,16 @@ func (ct *Date) UnmarshalJSON(b []byte) (err error) {
 	return
 }
 
+type AuthRequest struct {
+	ClientID     string `json:"clientId"`
+	ClientSecret string `json:"clientSecret"`
+}
+
+type AuthResponse struct {
+	AccessToken string  `json:"accessToken"`
+	ExpiresIn   float64 `json:"expiresIn"`
+}
+
 type InstallmentDto struct {
 	Value             float64 `json:"value,omitempty"`
 	InstallmentNumber int     `json:"installmentNumber,omitempty"`
@@ -54,57 +64,140 @@ type LoanDto struct {
 	Rate               RateDto          `json:"rate,omitempty"`
 }
 
-func fetchRates(apiUrl string) ([]RateDto, error) {
-	resp, err := http.Get(fmt.Sprintf("%s/api/v1/rates", apiUrl))
+func fetchRates(apiUrl, token string) ([]RateDto, error) {
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/v1/rates", apiUrl), nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 
-	var rates []RateDto = make([]RateDto, 0)
-	if err := json.NewDecoder(resp.Body).Decode(&rates); err != nil {
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to fetch rates, status code: %d", resp.StatusCode)
+	}
+
+	var rates []RateDto
+	err = json.NewDecoder(resp.Body).Decode(&rates)
+	if err != nil {
 		return nil, err
 	}
+
 	return rates, nil
 }
 
-func fetchLoans(apiUrl string) ([]LoanDto, error) {
-	resp, err := http.Get(fmt.Sprintf("%s/api/v1/loans", apiUrl))
+func fetchLoans(apiUrl, token string) ([]LoanDto, error) {
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/v1/loans", apiUrl), nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
-	var loans []LoanDto = make([]LoanDto, 0)
-	if err := json.NewDecoder(resp.Body).Decode(&loans); err != nil {
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to fetch loans, status code: %d", resp.StatusCode)
+	}
+
+	var loans []LoanDto
+	err = json.NewDecoder(resp.Body).Decode(&loans)
+	if err != nil {
 		return nil, err
 	}
+
 	return loans, nil
 }
 
-func fetchLoanById(apiUrl string, id int64) (*LoanDto, error) {
-	resp, err := http.Get(fmt.Sprintf("%s/api/v1/loans/%d", apiUrl, id))
+func fetchLoanById(apiUrl string, loanId int64, token string) (LoanDto, error) {
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/v1/loans/%s", apiUrl, loanId), nil)
 	if err != nil {
-		return nil, err
+		return LoanDto{}, err
+	}
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return LoanDto{}, err
 	}
 	defer resp.Body.Close()
-	var loan LoanDto
-	if err := json.NewDecoder(resp.Body).Decode(&loan); err != nil {
-		return nil, err
+
+	if resp.StatusCode != http.StatusOK {
+		return LoanDto{}, fmt.Errorf("failed to fetch loan by ID, status code: %d", resp.StatusCode)
 	}
-	return &loan, nil
+
+	var loan LoanDto
+	err = json.NewDecoder(resp.Body).Decode(&loan)
+	if err != nil {
+		return LoanDto{}, err
+	}
+
+	return loan, nil
 }
 
-func saveLoan(apiUrl string, loan LoanDto) error {
+func saveLoan(apiUrl string, loan LoanDto, token string) error {
 	body, err := json.Marshal(loan)
 	if err != nil {
 		return err
 	}
-	resp, err := http.Post(fmt.Sprintf("%s/api/v1/loans", apiUrl), "application/json", bytes.NewBuffer(body))
+
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/api/v1/loans", apiUrl), bytes.NewBuffer(body))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
+
 	return nil
+}
+
+func getClientToken(apiUrl string, clientID, clientSecret string) (string, error) {
+	url := fmt.Sprintf("%s/api/auth/token", apiUrl)
+
+	authRequest := AuthRequest{
+		ClientID:     clientID,
+		ClientSecret: clientSecret,
+	}
+
+	requestBody, err := json.Marshal(authRequest)
+	if err != nil {
+		return "", err
+	}
+
+	resp, err := http.Post(url, "application/json", bytes.NewBuffer(requestBody))
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("failed to get client token, status code: %d", resp.StatusCode)
+	}
+
+	var authResponse AuthResponse
+	err = json.NewDecoder(resp.Body).Decode(&authResponse)
+	if err != nil {
+		return "", err
+	}
+
+	return authResponse.AccessToken, nil
 }
 
 func main() {
@@ -118,6 +211,20 @@ func main() {
 		apiUrl = "http://localhost:8080" // Default port if not specified
 	}
 
+	clientId := os.Getenv("CLIENT_ID")
+	clientSecret := os.Getenv("CLIENT_SECRET")
+
+	if clientId == "" || clientSecret == "" {
+		log.Fatal().Msg("CLIENT_ID and CLIENT_SECRET environment variables must be set")
+		os.Exit(1)
+	}
+
+	token, err := getClientToken(apiUrl, clientId, clientSecret)
+	if err != nil {
+		log.Fatal().Msg(err.Error())
+		os.Exit(1)
+	}
+
 	r := gin.New()
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:  []string{"*"},
@@ -126,6 +233,7 @@ func main() {
 		ExposeHeaders: []string{"*"},
 		MaxAge:        12 * time.Hour,
 	}))
+
 	r.Use(logger.SetLogger(
 		logger.WithLogger(func(_ *gin.Context, l zerolog.Logger) zerolog.Logger {
 			return l.Output(gin.DefaultWriter).With().Logger()
@@ -133,7 +241,7 @@ func main() {
 	))
 
 	r.GET("/api/rates", func(c *gin.Context) {
-		rates, err := fetchRates(apiUrl)
+		rates, err := fetchRates(apiUrl, token)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": err.Error(),
@@ -146,7 +254,7 @@ func main() {
 	})
 
 	r.GET("/api/loans", func(c *gin.Context) {
-		loans, err := fetchLoans(apiUrl)
+		loans, err := fetchLoans(apiUrl, token)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": err.Error(),
@@ -167,7 +275,7 @@ func main() {
 			})
 			return
 		}
-		loan, err := fetchLoanById(apiUrl, loanId)
+		loan, err := fetchLoanById(apiUrl, loanId, token)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": err.Error(),
@@ -187,7 +295,7 @@ func main() {
 			})
 			return
 		}
-		if err := saveLoan(apiUrl, loan); err != nil {
+		if err := saveLoan(apiUrl, loan, token); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": err.Error(),
 			})
