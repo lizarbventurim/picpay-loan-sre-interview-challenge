@@ -1,3 +1,5 @@
+USE exampledb;
+
 CREATE TABLE rates (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     rate DOUBLE NOT NULL,
