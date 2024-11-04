@@ -11,7 +11,7 @@ POST {{service_host}}/api/auth/token
 Content-Type: application/json
 {
     "clientId": "bff",
-    "clientSecret": "b27ccb9f-abaf-4fe2-b7fe-cbd61d69ed92"
+    "clientSecret": "averylongandsecureclientsecret"
 }
 
 ## Exemplo de request atutenticado 
