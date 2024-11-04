@@ -2,6 +2,11 @@
 @bff_host=http://localhost:8085
 
 
+## Métricas
+GET {{service_host}}/actuator/prometheus
+
+
+## Obter token
 POST {{service_host}}/api/auth/token
 Content-Type: application/json
 {
@@ -9,9 +14,9 @@ Content-Type: application/json
     "clientSecret": "b27ccb9f-abaf-4fe2-b7fe-cbd61d69ed92"
 }
 
+## Exemplo de request atutenticado 
 GET {{service_host}}/api/v1/rates
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJiZmYiLCJpYXQiOjE3MzA1MDA1MTcsImV4cCI6MTczMDU4NjkxN30.akKmCtOpTFW8W_g7moRcEVkIC0gPvIKtXqZDxmTcWh4
-
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJiZmYiLCJpYXQiOjE3MzA3MjcyMDMsImV4cCI6MTczMDgxMzYwM30.90-iETQrKcN8yTxePIWFLb3Cm7sZ32TQLtV-Q9Ckmj0
 GET {{service_host}}/api/v1/loans
 
 GET {{service_host}}/api/v1/loans/6
@@ -30,7 +35,7 @@ Content-Type: application/json
 }
 
 
-
+## Exemplos BFF
 GET {{bff_host}}/api/rates
 
 GET {{bff_host}}/api/loans

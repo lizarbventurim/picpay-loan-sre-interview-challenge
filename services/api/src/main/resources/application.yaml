@@ -22,3 +22,19 @@ security:
   jwt:
     secret-key: ${JWT_SECRET_KEY}
     expiration-time: 86400000
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    metrics:
+      enabled: true
+      jvm:
+        enabled: true
+        exposure:
+          include: "*"
+    health:
+      show-details: always

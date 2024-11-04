@@ -1,5 +1,3 @@
-use exampledb;
-
 CREATE TABLE rates (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     rate DOUBLE NOT NULL,
@@ -33,7 +31,7 @@ CREATE TABLE auths (
     PRIMARY KEY (client_id)
 );
 
-INSERT INTO auths (client_id, client_secret) VALUES ('bff', 'b27ccb9f-abaf-4fe2-b7fe-cbd61d69ed92');
+INSERT INTO auths (client_id, client_secret) VALUES ('bff', 'sample-client-secret');
 
 INSERT INTO rates (name, description, rate) VALUES ('Rate 1', 'Sample Description', 1.5);
 INSERT INTO rates (name, description, rate) VALUES ('Rate 2', 'Sample Description', 1.7);

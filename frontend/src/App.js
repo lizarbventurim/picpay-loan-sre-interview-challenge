@@ -5,6 +5,8 @@ import './App.css';
 
 Modal.setAppElement('#root');
 
+
+
 function App() {
   const [listLoans, setListLoans] = useState([]);
   const [availableRates, setAvailableRates] = useState([]);
@@ -118,10 +120,10 @@ function App() {
           <input type="date" id="startDate" name="startDate" placeholder="Start Date" value={newLoan.startDate} onChange={handleInputChange} required />
           
           <label htmlFor="rate">Rate</label>
-          <select id="rate" name="rate" value={newLoan.rate} onChange={handleInputChange} required>
+          <select id="rate" name="rate" value={newLoan.rate.id} onChange={handleInputChange} required>
             <option value="">Select Rate</option>
             {availableRates.map((rate) => (
-              <option key={rate.id} value={rate.id}>{`${rate.name}(${rate.value})`}</option>
+              <option key={rate.name} value={rate.id}>{`${rate.name}(${rate.value})`}</option>
             ))}
           </select>
           <button type="submit">Create Loan</button>

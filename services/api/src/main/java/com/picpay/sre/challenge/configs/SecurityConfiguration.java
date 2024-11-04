@@ -50,6 +50,7 @@ public class SecurityConfiguration {
 
         http.authorizeRequests()
             .requestMatchers("/api/auth/**").permitAll()
+            .requestMatchers("/actuator/**").permitAll()
             .anyRequest().authenticated();
 
         http.addFilterBefore(

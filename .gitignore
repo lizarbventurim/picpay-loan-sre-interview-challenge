@@ -76,3 +76,4 @@ yarn-error.log*
 
 
 Dockerfile
+docker-compose.full.yaml
