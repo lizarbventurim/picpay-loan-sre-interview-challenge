@@ -16,8 +16,7 @@ Content-Type: application/json
 
 ## Exemplo de request atutenticado 
 GET {{service_host}}/api/v1/rates
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJiZmYiLCJpYXQiOjE3MzA3MjcyMDMsImV4cCI6MTczMDgxMzYwM30.90-iETQrKcN8yTxePIWFLb3Cm7sZ32TQLtV-Q9Ckmj0
-GET {{service_host}}/api/v1/loans
+Authorization: Bearer ...
 
 GET {{service_host}}/api/v1/loans/6
 
