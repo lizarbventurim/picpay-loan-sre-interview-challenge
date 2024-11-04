@@ -52,9 +52,21 @@ Faça commits ao longo do processo, queremos entender o seu modo de pensar! :)
 
 Para a entrevista, separe também anotações contendo melhorias que faria em cada aplicação ou na arquitetura em geral. Não envie estas anotações na pull request.
 
-## O que será avaliado e valorizamos :heart:
-## O que NÃO será avaliado :warning:
+## O que será avaliado ?
+
+- Compreensão de arquitetura;
+- Monitoramento;
+- Documentação;
+- Conteinerização;
+- Habilidade de resolução de problemas.
+
+
 ## O que será um Diferencial
+
+- Automatização
+- Utilização de Helm/Kubernetes
+- Alertas
+- Melhorias na arquitetura.
 
 
 ## Links Úteis
