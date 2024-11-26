@@ -1,4 +1,4 @@
-# Desafio SRE PicPay Empréstimos
+# Desafio SRE
 
 Obrigado pelo interesse em fazer parte do nosso time! Preparamos este desafio com carinho para ajudar a entender um pouco mais dos seus conhecimentos na área de DevOps/SRE
 

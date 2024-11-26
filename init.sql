@@ -12,7 +12,7 @@ CREATE TABLE loans (
     name VARCHAR(255) NOT NULL,
     description VARCHAR(255),
     value DOUBLE NOT NULL,
-    start_date DATETIME NOT NULL,
+    start_date DATE NOT NULL,
     rate_id BIGINT NOT NULL,
     FOREIGN KEY (rate_id) REFERENCES rates(id)
 );
@@ -21,7 +21,7 @@ CREATE TABLE installments (
     loan_id BIGINT NOT NULL,
     installment_number INT NOT NULL,
     value DOUBLE NOT NULL,
-    due_date DATETIME NOT NULL,
+    due_date DATE NOT NULL,
     PRIMARY KEY (loan_id, installment_number),
     FOREIGN KEY (loan_id) REFERENCES loans(id)
 );
