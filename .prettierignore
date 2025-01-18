@@ -1,0 +1,11 @@
+# Ignore:
+**/node_modules/
+**/.git/
+**/allure-results/
+**/allure-report/
+
+
+# Ignorar pastas do Cypress
+cypress/videos/
+cypress/screenshots/
+cypress/downloads/
