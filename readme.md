@@ -39,6 +39,8 @@ rode o comando `npm install` para instalar as dependências do projeto.
 - `npm run format`: Formata o código utilizando Prettier.
 - `npm run prepare`: Configura os hooks do Husky.
 
+Ao rodar o reste via `npm run test` será criado uma pasta "videos" com os vídeo da execução do teste.
+
 ### Estrutura dos Testes
 Os testes estão localizados no diretório e2e e são divididos em três arquivos principais:
 
