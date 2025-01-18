@@ -1,5 +1,23 @@
 {
+  "name": "picpay-test-qa-senior",
+  "version": "1.0.0",
+  "private": false,
+  "engines": {
+    "node": ">=21"
+  },
+  "scripts": {
+    "test": "cypress run",
+    "prepare": "husky",
+    "format": "prettier --write \"**/*.{js,ts,json,md,yml}\""
+  },
   "dependencies": {
-    "cypress": "^14.0.0"
+    "cypress": "^14.0.0",
+    "husky": "^9.1.7",
+    "prettier": "^3.4.2"
+  },
+  "devDependencies": {
+    "eslint": "^9.18.0",
+    "eslint-plugin-cypress": "^4.1.0",
+    "faker-br": "^0.4.1"
   }
 }
